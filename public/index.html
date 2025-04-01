@@ -94,13 +94,16 @@
         if (!found) return res.status(400).json({ error: "WH không hợp lệ hoặc không tìm thấy cookie" });
 
         const cookieValue = found[1];
+        // replace cookieValue " " thành ""
+        const cookieValue2 = cookieValue.replace(/ /g, "");
+        console.log(cookieValue2)
 
       currentData = null;
 
       if (!searchKey) return alert("Vui lòng nhập mã OB");
 
       try {
-        const res = await fetch('/api/data?search=' + encodeURIComponent(searchKey) + '&wh=' + cookieValue);
+        const res = await fetch('/api/data?search=' + encodeURIComponent(searchKey) + '&wh=' + cookieValue2);
         const data = await res.json();
 
         if (data.sub_pickup_id && data.skus.length === 1) {
