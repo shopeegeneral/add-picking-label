@@ -10,6 +10,10 @@ app.use(express.static('public'));
 app.get('/api/data', async (req, res) => {
     const searchKey = req.query.search;
     const wh = req.query.wh;
+
+      // ✅ Log ra 2 biến
+    console.log('🔍 searchKey:', searchKey);
+    console.log('🏢 WH:', wh);
   
     if (!searchKey) {
       return res.status(400).json({ error: "Vui lòng nhập Mã đơn hàng" });
