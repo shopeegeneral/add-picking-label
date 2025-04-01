@@ -1,8 +1,9 @@
 const express = require('express');
+// const fetch = require('node-fetch');
 const fetch = require('node-fetch');
 const path = require('path');
 const app = express();
-const PORT = 3000;
+// const PORT = 3000;
 
 app.use(express.static('public'));
 
@@ -79,7 +80,7 @@ app.get('/api/data', async (req, res) => {
 });
 
 // ✅ Add this before app.listen
-// const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
