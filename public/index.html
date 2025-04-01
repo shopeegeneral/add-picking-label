@@ -100,7 +100,7 @@
       if (!searchKey) return alert("Vui lòng nhập mã OB");
 
       try {
-        const res = await fetch('/api/data?search=' + encodeURIComponent(searchKey) + '&wh=' + encodeURIComponent(cookieValue));
+        const res = await fetch('/api/data?search=' + encodeURIComponent(searchKey) + '&wh=' + cookieValue);
         const data = await res.json();
 
         if (data.sub_pickup_id && data.skus.length === 1) {
