@@ -12,8 +12,8 @@ app.get('/api/data', async (req, res) => {
     const wh = req.query.wh;
 
       // ✅ Log ra 2 biến
-    console.log('🔍 searchKey:', searchKey);
-    console.log('🏢 WH:', wh);
+    // console.log('🔍 searchKey:', searchKey);
+    // console.log('🏢 WH:', wh);
   
     if (!searchKey) {
       return res.status(400).json({ error: "Vui lòng nhập Mã đơn hàng" });
@@ -55,6 +55,7 @@ app.get('/api/data', async (req, res) => {
   try {
     const response = await fetch("https://wms.ssc.shopee.vn/api/v2/apps/process/taskcenter/pickingtask/search_sales_sub_picking_task", requestOptions);
     const data = await response.json();
+    console.log("Response data:", data); // Log the response data for debugging
 
     const subPickupId = data?.data?.list?.[0]?.sub_pickup_id;
 
