@@ -2,7 +2,7 @@
   "name": "add-picking-ui",
   "version": "1.0.0",
   "scripts": {
-    "start": "serve public"
+    "start": "npx serve public"
   },
   "dependencies": {
     "serve": "^14.2.0"
