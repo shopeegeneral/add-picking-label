@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Add Picking</title>
   <link rel="stylesheet" href="style.css" />
+
 </head>
 <body>
   <h1>Add Picking Print</h1>
@@ -22,15 +23,16 @@
     <input type="text" id="searchInput" placeholder="Nhập mã OB..." />
     <button onclick="search()">Tìm kiếm</button>
   </div>
-    <div id="result">
-        <p id="subIdResult"></p>
-        <p id="skuIdResult"></p>
-        <p id="skuNameResult"></p>
-        <p id="locResult"></p>
-        <p id="qtyResult"></p>
-    </div>
 
-  <!-- Modal nhập Grid No -->
+  <div id="result">
+    <p id="subIdResult"></p>
+    <p id="skuIdResult"></p>
+    <p id="skuNameResult"></p>
+    <p id="locResult"></p>
+    <p id="qtyResult"></p>
+  </div>
+
+  <!-- Modal -->
   <div id="modal" class="modal">
     <div class="modal-content">
       <h3>Nhập Grid No</h3>
@@ -39,138 +41,111 @@
     </div>
   </div>
 
-  <!-- Canvas để in -->
   <div style="display:none">
-    <canvas id="labelCanvas" width="288" height="144"></canvas> <!-- 2x4 inch at 288 DPI -->
+    <canvas id="labelCanvas" width="288" height="144"></canvas>
   </div>
 
   <div id="loader">
-    <div class="spinner"></div>
     <p>Đang tải dữ liệu... Vui lòng chờ</p>
   </div>
 
   <script>
+    const backendBaseUrl = "https://7afb-58-186-223-220.ngrok-free.app"; // ⚠️ Thay bằng ngrok/IP nếu dùng từ Render
 
     let cookie_arr = [];
 
     async function loadCookieArray() {
-        const url = "https://script.google.com/macros/s/AKfycbw4AykhEv2AmxCt_23XJGB7Rt1zzchWqKF7RinMWnTKTG9UG8h2tk99SjHsLnZkU8Cn/exec";
-        try {
-            const res = await fetch(url);
-            cookie_arr = await res.json(); // 2D array [["VNS", "aaa"], ...]
-            console.log("✅ cookie_arr loaded from Google Sheet");
+      const url = "https://script.google.com/macros/s/AKfycbw4AykhEv2AmxCt_23XJGB7Rt1zzchWqKF7RinMWnTKTG9UG8h2tk99SjHsLnZkU8Cn/exec";
+      try {
+        const res = await fetch(url);
+        cookie_arr = await res.json();
+        document.getElementById('loader').style.display = 'none';
+      } catch (err) {
+        document.getElementById('loader').innerHTML = "<p style='color:red;'>❌ Lỗi tải cookie_arr</p>";
+      }
+    }
 
-            // ✅ Ẩn spinner, hiển thị giao diện
-            document.getElementById('loader').style.display = 'none';
-            document.body.classList.remove('loading');
-        } catch (err) {
-            console.error("❌ Error fetching cookie_arr:", err);
-            document.getElementById('loader').innerHTML = "<p style='color:red;'>❌ Lỗi tải cookie_arr</p>";
-        }
-        }
-
-    
     loadCookieArray();
 
     let currentData = null;
 
     async function search() {
-        const searchKey = document.getElementById('searchInput').value.trim();
-        const whValue = document.getElementById('whSelect').value;
-        const subIdResult = document.getElementById('subIdResult');
-        const skuIdResult = document.getElementById('skuIdResult');
-        const skuNameResult = document.getElementById('skuNameResult');
-        const locResult = document.getElementById('locResult');
-        const qtyResult = document.getElementById('qtyResult');
-
-
-        subIdResult.textContent = '';
-        skuIdResult.textContent = '';
-        skuNameResult.textContent = '';
-        locResult.textContent = '';
-        qtyResult.textContent = '';
-
-        const found = cookie_arr.find(row => row[0] === whValue);
-        if (!found) return res.status(400).json({ error: "WH không hợp lệ hoặc không tìm thấy cookie" });
-
-        const cookieValue = found[1];
-        // replace cookieValue " " thành ""
-        const cookieValue2 = cookieValue.replace(/ /g, "");
-        console.log(cookieValue2)
-
-      currentData = null;
+      const searchKey = document.getElementById('searchInput').value.trim();
+      const whValue = document.getElementById('whSelect').value;
 
       if (!searchKey) return alert("Vui lòng nhập mã OB");
 
+      const found = cookie_arr.find(row => row[0] === whValue);
+      if (!found) return alert("WH không hợp lệ hoặc không tìm thấy cookie");
+
+      const cookieValue = found[1].replace(/ /g, "");
+
       try {
-        const res = await fetch('/api/data?search=' + encodeURIComponent(searchKey) + '&wh=' + cookieValue2);
+        const res = await fetch(`${backendBaseUrl}/api/data`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ search: searchKey, cookie: cookieValue })
+        });
+
         const data = await res.json();
 
         if (data.sub_pickup_id && data.skus.length === 1) {
           const item = data.skus[0];
           currentData = { ...item, searchKey, sub_pickup_id: data.sub_pickup_id };
 
-          subIdResult.textContent = `✅ Sub Pickup ID: ${data.sub_pickup_id}`;
-            skuIdResult.textContent = `SKU ID: ${item.sku_id}`;
-            skuNameResult.textContent = `Tên SKU: ${item.sku_name}`;
-            locResult.textContent = `Vị trí gợi ý: ${item.suggest_locations}`;
-            qtyResult.textContent = `Tổng số lượng: ${item.total_quantity}`;
-    
+          document.getElementById('subIdResult').textContent = `✅ Sub Pickup ID: ${data.sub_pickup_id}`;
+          document.getElementById('skuIdResult').textContent = `SKU ID: ${item.sku_id}`;
+          document.getElementById('skuNameResult').textContent = `Tên SKU: ${item.sku_name}`;
+          document.getElementById('locResult').textContent = `Vị trí gợi ý: ${item.suggest_locations}`;
+          document.getElementById('qtyResult').textContent = `Tổng số lượng: ${item.total_quantity}`;
 
-          // Mở modal
           document.getElementById('modal').style.display = 'flex';
-          document.getElementById('gridInput').value = ''; // Reset input
+          document.getElementById('gridInput').value = '';
           document.getElementById('gridInput').focus();
-
         } else {
-          subIdResult.textContent = '❌ Không tìm thấy hoặc có nhiều hơn 1 dòng dữ liệu!';
+          alert("Không tìm thấy hoặc có nhiều hơn 1 dòng dữ liệu!");
         }
-
       } catch (err) {
-        console.error("Lỗi:", err);
-        subIdResult.textContent = '❌ Lỗi khi lấy dữ liệu';
+        alert("Lỗi khi gọi API nội bộ");
+        console.error(err);
       }
     }
 
     function printLabel() {
       const gridNo = document.getElementById('gridInput').value.trim();
-    //   if (!gridNo) return alert("Vui lòng nhập Grid No");
-        if (!gridNo) {
-            alert("Vui lòng nhập Grid No");
-            document.getElementById('gridInput').focus();
-            return;
-        }
+      if (!gridNo) {
+        alert("Vui lòng nhập Grid No");
+        document.getElementById('gridInput').focus();
+        return;
+      }
+
       const canvas = document.getElementById('labelCanvas');
-        const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d');
 
-        // Reset canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#000";
-        ctx.font = "14px Arial";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#000";
+      ctx.font = "14px Arial";
 
-        const padX = 40;
-        let y = 20;
+      const padX = 40;
+      let y = 20;
 
-        ctx.fillText(`Mã đơn hàng: ${currentData.searchKey}`, padX, y); y += 20;
-        ctx.fillText(`Sub Picking ID: ${currentData.sub_pickup_id}`, padX, y); y += 20;
-        ctx.fillText(`SKU ID: ${currentData.sku_id}`, padX, y); y += 20;
-        ctx.fillText(`SKU Name: ${currentData.sku_name}`, padX, y); y += 20;
-        ctx.fillText(`Location: ${currentData.suggest_locations}`, padX, y); y += 20;
-        ctx.fillText(`Quantity: ${currentData.total_quantity}`, padX, y); y += 20;
-        ctx.fillText(`Grid No: ${gridNo}`, padX, y);
+      ctx.fillText(`Mã đơn hàng: ${currentData.searchKey}`, padX, y); y += 20;
+      ctx.fillText(`Sub Picking ID: ${currentData.sub_pickup_id}`, padX, y); y += 20;
+      ctx.fillText(`SKU ID: ${currentData.sku_id}`, padX, y); y += 20;
+      ctx.fillText(`SKU Name: ${currentData.sku_name}`, padX, y); y += 20;
+      ctx.fillText(`Location: ${currentData.suggest_locations}`, padX, y); y += 20;
+      ctx.fillText(`Quantity: ${currentData.total_quantity}`, padX, y); y += 20;
+      ctx.fillText(`Grid No: ${gridNo}`, padX, y);
 
-
-      // Tự động in canvas
       const dataUrl = canvas.toDataURL();
       const win = window.open('', '_blank');
       win.document.write(`<img src="${dataUrl}" onload="window.print(); window.close()" />`);
       win.document.close();
 
-      // Đóng modal
       document.getElementById('modal').style.display = 'none';
-      document.getElementById('searchInput').value = ''; // Reset input
+      document.getElementById('searchInput').value = '';
       document.getElementById('searchInput').focus();
     }
   </script>

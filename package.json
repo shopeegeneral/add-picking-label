@@ -1,25 +1,10 @@
 {
-  "name": "addpicking",
+  "name": "add-picking-ui",
   "version": "1.0.0",
-  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "serve public"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/shopeegeneral/add-picking-label.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/shopeegeneral/add-picking-label/issues"
-  },
-  "homepage": "https://github.com/shopeegeneral/add-picking-label#readme",
-  "description": "",
   "dependencies": {
-    "express": "^5.1.0",
-    "node-fetch": "^2.7.0"
+    "serve": "^14.2.0"
   }
 }
